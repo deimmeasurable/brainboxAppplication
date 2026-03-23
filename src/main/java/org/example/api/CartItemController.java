@@ -1,7 +1,14 @@
 package org.example.api;
 
+import lombok.RequiredArgsConstructor;
+import org.example.domain.Cart;
+import org.example.domain.CartItem;
+import org.example.dto.CartItemResponse;
 import org.example.dto.CartRequest;
 import org.example.service.CartService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -20,7 +27,7 @@ public class CartItemController {
     }
 
     @GetMapping("/{cartId}")
-    public List<CartItem> viewCart(@PathVariable Long cartId) {
+    public List<CartItemResponse> viewCart(@PathVariable Long cartId) {
         return service.viewCart(cartId);
     }
 

@@ -1,48 +1,70 @@
 package org.example.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.domain.CartItem;
 import org.example.domain.Product;
-import org.example.repository.CartRepository;
-import org.example.repository.ProductRepository;
 
-import java.util.LinkedHashMap;
+import org.example.dto.ProductRequest;
+import org.example.dto.ProductResponse;
+import org.example.dto.UpdateProductRequest;
+import org.example.repository.ProductRepository;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository repo;
+@Override
+public ProductResponse create(ProductRequest productRequest) {
 
-    public Product create(Product product) {
-        repo.findByNameIgnoreCase(product.getName())
+        repo.findByNameIgnoreCase(productRequest.getName())
                 .ifPresent(p -> {
                     throw new RuntimeException("Product already exists");
                 });
 
-        return repo.save(product);
-    }
 
+        Product product = new Product();
+        product.setName(productRequest.getName());
+        product.setCategory(productRequest.getCategory());
+        product.setPrice(productRequest.getPrice());
+
+
+     repo.save(product);
+
+        return ProductResponse.builder()
+                .message("Product created successfully")
+                .build();
+    }
+@Override
     public List<Product> getAll() {
         return repo.findAll();
     }
-
-    public Product get(Long id) {
+@Override
+public Product getAProduct(Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Not found"));
     }
-
-    public Product update(Long id, Product updated) {
-        Product p = get(id);
+@Override
+public ProductResponse updateProduct(Long id, UpdateProductRequest updated) {
+        Product p = getAProduct(id);
         p.setName(updated.getName());
         p.setCategory(updated.getCategory());
         p.setPrice(updated.getPrice());
-        return repo.save(p);
-    }
 
-    public void delete(Long id) {
+         repo.save(p);
+         return ProductResponse.builder()
+                 .message("product updated successfully")
+                 .build();
+
+    }
+@Override
+public ProductResponse delete(Long id) {
+
         repo.deleteById(id);
+        return ProductResponse.builder()
+                .message("product deleted successfully")
+                .build();
     }
 }
 

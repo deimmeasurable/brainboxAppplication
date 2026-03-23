@@ -2,7 +2,11 @@ package org.example.api;
 
 import lombok.RequiredArgsConstructor;
 import org.example.domain.Product;
+import org.example.dto.ProductRequest;
+import org.example.dto.ProductResponse;
+import org.example.dto.UpdateProductRequest;
 import org.example.service.ProductService;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -14,8 +18,10 @@ public class ProductController {
     private final ProductService service;
 
     @PostMapping
-    public Product create(@RequestBody Product p) {
-        return service.create(p);
+    public ProductResponse create(@RequestBody ProductRequest p) {
+        ProductResponse response=  service.create(p);
+
+        return response;
     }
 
     @GetMapping
@@ -24,19 +30,19 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public Product get(@PathVariable Long id) {
-        return service.get(id);
+    public Product getAProduct(@PathVariable Long id) {
+        return service.getAProduct(id);
     }
 
     @PutMapping("/{id}")
-    public Product update(@PathVariable Long id, @RequestBody Product p) {
-        return service.update(id, p);
+    public ProductResponse update(@PathVariable Long id, @RequestBody UpdateProductRequest updateProductRequest) {
+        return service.updateProduct(id, updateProductRequest);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        service.delete(id);
+    public ProductResponse delete(@PathVariable Long id) {
+       return service.delete(id);
     }
 }
 
-}
+

@@ -1,10 +1,15 @@
 package org.example.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.domain.Cart;
 import org.example.domain.CartItem;
+import org.example.domain.Product;
+import org.example.dto.CartItemResponse;
 import org.example.dto.CartRequest;
+import org.example.repository.CartItemRepository;
 import org.example.repository.CartRepository;
 import org.example.repository.ProductRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -14,28 +19,24 @@ public class CartServiceImpl {
 
     private final CartRepository cartRepo;
     private final ProductRepository productRepo;
-    private final CartRepository itemRepo;
+    private final CartItemRepository itemRepo;
 
-    public CartItem createCart(CartRequest request) {
+    public Cart createCart(CartRequest request) {
 
-        CartItem cart = new CartItem();
+        Cart cart = new Cart();
 
-        // Optional: if you later add user relationship
         cart.setUserId(request.getUserId());
 
         return cartRepo.save(cart);
     }
     public void addToCart(Long cartId, Long productId) {
-        Cart cart = cartRepo.findById(cartId)
-                .orElseThrow();
 
-        Product product = productRepo.findById(productId)
-                .orElseThrow();
+        if (itemRepo.existsByCartIdAndProductId(cartId, productId)) {
+            throw new RuntimeException("Product already in cart");
+        }
 
-        itemRepo.findByCartIdAndProductId(cartId, productId)
-                .ifPresent(i -> {
-                    throw new RuntimeException("Product already in cart");
-                });
+        Cart cart = cartRepo.findById(cartId).orElseThrow();
+        Product product = productRepo.findById(productId).orElseThrow();
 
         CartItem item = new CartItem();
         item.setCart(cart);
@@ -43,9 +44,16 @@ public class CartServiceImpl {
 
         itemRepo.save(item);
     }
+    public List<CartItemResponse> viewCart(Long cartId) {
 
-    public List<CartItem> viewCart(Long cartId) {
-        return itemRepo.findByCartId(cartId);
+        return itemRepo.findByCartId(cartId)
+                .stream()
+                .map(item -> new CartItemResponse(
+                        item.getProduct().getName(),
+                        item.getProduct().getCategory(),
+                        item.getProduct().getPrice()
+                ))
+                .toList();
     }
 
     public Double getTotal(Long cartId) {
@@ -56,7 +64,7 @@ public class CartServiceImpl {
     }
 
     public void removeItem(Long cartId, Long productId) {
-        CartItem item = itemRepo.findByCartIdAndProductId(cartId, productId)
+        CartItem item = itemRepo.findByIdAndProductId(cartId, productId)
                 .orElseThrow();
 
         itemRepo.delete(item);
